@@ -7,9 +7,10 @@ import socket
 import json
 from win10toast import ToastNotifier
 
-SAMPLE_RATE = 48000              # [Hz]. sampling rate.
-RECORD_SEC = 10                  # [sec]. duration recording audio.
-NOTIFICATION_METHOD = 0          # method for sending notifications, 0=windows 1=xso
+SAMPLE_RATE = 48000                 # [Hz]. sampling rate.
+RECORD_SEC = 5                      # [sec]. duration recording audio.
+NOTIFICATION_METHOD = 0             # method for sending notifications, 0=windows 1=xso
+NOTIFICATION_DURATION = 5           # [sec]. duration notification popup stays.
 
 def RecordAudioBytes(sr, rs):
     print("Recording...")
@@ -37,7 +38,7 @@ def RecognizeSong(audio_bytes):
             if shazam_data[1]["track"] != "":
                 track_data = shazam_data[1]["track"]
                 track_msg = f"{track_data['title']} - {track_data['subtitle']}"
-                print(track_msg)
+                print(f"Song Recognized - {track_msg}")
                 return (track_msg, "Song Recognized")
 
         except:
@@ -59,7 +60,10 @@ def SendNotification(content, msg_type):
     match NOTIFICATION_METHOD:
         case 0:
             toaster = ToastNotifier()
-            toaster.show_toast(f"VRCazam - {msg_type}", content)
+            toaster.show_toast(
+                f"VRCazam - {msg_type}", 
+                content, 
+                duration=NOTIFICATION_DURATION)
 
         case 1:
             ip = "127.0.0.1"
@@ -75,7 +79,7 @@ def SendNotification(content, msg_type):
                 "content": content,
                 "height": 175.0,
                 "sourceApp": "VRCazam",
-                "timeout": 6.0,
+                "timeout": NOTIFICATION_DURATION,
                 "volume": 0.7,
                 "audioPath": "default",
                 "useBase64Icon": False,
