@@ -6,11 +6,14 @@ from pythonosc import dispatcher, osc_server
 import socket
 import json
 from win10toast import ToastNotifier
+from os import path
+from datetime import datetime
 
 SAMPLE_RATE = 48000                 # [Hz]. sampling rate.
-RECORD_SEC = 5                      # [sec]. duration recording audio.
-NOTIFICATION_METHOD = 0             # method for sending notifications, 0=windows 1=xso
+RECORD_SEC = 10                      # [sec]. duration recording audio.
+NOTIFICATION_METHOD = 1             # method for sending notifications, 0=windows 1=xso
 NOTIFICATION_DURATION = 5           # [sec]. duration notification popup stays.
+TRACK_LOG_FILE_PATH = "./detected-tracks.json"
 
 def RecordAudioBytes(sr, rs):
     print("Recording...")
@@ -37,6 +40,8 @@ def RecognizeSong(audio_bytes):
             
             if shazam_data[1]["track"] != "":
                 track_data = shazam_data[1]["track"]
+                #LOG SONG
+                LogDetectedTrack(track_data)
                 track_msg = f"{track_data['title']} - {track_data['subtitle']}"
                 print(f"Song Recognized - {track_msg}")
                 return (track_msg, "Song Recognized")
@@ -93,7 +98,35 @@ def SendNotification(content, msg_type):
             sock.sendto(byte, (ip, port))
 
             sock.close()
+
+def LogDetectedTrack(track_data):
     
+    print("Logging Track...")
+
+    with open(TRACK_LOG_FILE_PATH) as track_log:
+        track_log_list = json.load(track_log)
+    
+    needed_track_data = {
+        "title": track_data["title"],
+        "artist": track_data["subtitle"],
+        "cover_art": track_data["images"]["coverarthq"],
+        "apple_music_uri": f"https://music.apple.com/us/song/{track_data['hub']['actions'][0]['id']}" if 'hub' in track_data and 'actions' in track_data['hub'] and track_data['hub']['actions'][0]['id'] else None,
+        "track_providers": [{"platform": item["type"], "uri": item["actions"][0]["uri"]} for item in track_data["hub"]["providers"]],
+        "time_detected": int(datetime.now().timestamp())
+    }
+    
+    track_log_list.append(needed_track_data)
+
+    with open(TRACK_LOG_FILE_PATH, "w+") as track_log:
+        json.dump(track_log_list, track_log, indent=4, separators=(',',': '))
+
+    print("Finished logging track.")
+
+# Check if the track log exists if not create an empty one.
+if path.isfile(TRACK_LOG_FILE_PATH) is False:
+    with open(TRACK_LOG_FILE_PATH, "w") as track_log:
+        json.dump([], track_log, indent=4, separators=(',',': '))
+
 # Set up the dispatcher to route messages to the function
 dispatcher = dispatcher.Dispatcher()
 dispatcher.map("/avatar/parameters/SongSearch", SongSearchInit)
