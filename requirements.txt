@@ -2,4 +2,4 @@ ShazamAPI==0.0.2
 SoundCard==0.4.2
 python-osc==1.8.0
 soundfile==0.12.1
-win10toast==0.9
+plyer==2.1.0

@@ -5,15 +5,28 @@ import io
 from pythonosc import dispatcher, osc_server
 import socket
 import json
-from win10toast import ToastNotifier
 from os import path
 from datetime import datetime
+import configparser
+from plyer import notification
 
-SAMPLE_RATE = 48000                 # [Hz]. sampling rate.
-RECORD_SEC = 10                      # [sec]. duration recording audio.
-NOTIFICATION_METHOD = 1             # method for sending notifications, 0=windows 1=xso
-NOTIFICATION_DURATION = 5           # [sec]. duration notification popup stays.
+# FILE PATHS
+CONFIG_FILE = "./config.cfg"
 TRACK_LOG_FILE_PATH = "./detected-tracks.json"
+
+# Create a ConfigParser object
+config = configparser.ConfigParser()
+
+# Read the config file
+config.read('config.ini')
+
+# Access the variables under the [RECORDING] section
+sample_rate = config.getint('RECORDING', 'SAMPLE_RATE')
+record_sec = config.getint('RECORDING', 'RECORD_SEC')
+
+# Access the variables under the [NOTIFICATIONS] section
+notification_method = config.getint('NOTIFICATIONS', 'NOTIFICATION_METHOD')
+notification_duration = config.getint('NOTIFICATIONS', 'NOTIFICATION_DURATION')
 
 def RecordAudioBytes(sr, rs):
     print("Recording...")
@@ -55,20 +68,23 @@ def SongSearchInit(address, *args):
 
     if args[0] == True:
         print(f"OSC Message Recieved on address {address}.")
-        audio_bytes = RecordAudioBytes(SAMPLE_RATE, RECORD_SEC)
+        audio_bytes = RecordAudioBytes(sample_rate, record_sec)
         track_msg = RecognizeSong(audio_bytes)
 
         SendNotification(content=track_msg[0], msg_type=track_msg[1])
 
+
 def SendNotification(content, msg_type):
 
-    match NOTIFICATION_METHOD:
+    match notification_method:
         case 0:
-            toaster = ToastNotifier()
-            toaster.show_toast(
-                f"VRCazam - {msg_type}", 
-                content, 
-                duration=NOTIFICATION_DURATION)
+            notification.notify(
+                title=f"VRCazam - {msg_type}",
+                message=content,
+                app_name="VRCazam",
+                app_icon=None,  # You can specify an icon file path here
+                timeout=notification_duration,     # Duration in seconds for the notification to stay on the screen
+            )
 
         case 1:
             ip = "127.0.0.1"
@@ -84,7 +100,7 @@ def SendNotification(content, msg_type):
                 "content": content,
                 "height": 175.0,
                 "sourceApp": "VRCazam",
-                "timeout": NOTIFICATION_DURATION,
+                "timeout": notification_duration,
                 "volume": 0.7,
                 "audioPath": "default",
                 "useBase64Icon": False,
