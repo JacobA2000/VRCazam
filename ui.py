@@ -3,10 +3,13 @@ import json
 import requests
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QListWidget, QListWidgetItem, QLabel, QVBoxLayout, QFrame, QSizePolicy
 from PyQt5.QtGui import QPixmap, QFont
-from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import pyqtSignal, QObject, Qt, QThread
 
+# Main window class
 class MyWindow(QWidget):
+    
+    updateUI = pyqtSignal()
+
     def __init__(self):
         super().__init__()
         self.initUI()
@@ -14,13 +17,39 @@ class MyWindow(QWidget):
     def initUI(self):
         # Create the main layout
         main_layout = QHBoxLayout()
-
+        
         # Create the list view
-        list_view = QListWidget()
-        list_view.setDisabled(True)
+        self.list_view = QListWidget()
+        self.list_view.setDisabled(True)
 
         # Create a vertical layout for the widget items
-        widget_layout = QVBoxLayout()
+        self.widget_layout = QVBoxLayout()
+
+        # Add the list view and the widget layout to the main layout
+        main_layout.addWidget(self.list_view)
+        main_layout.addLayout(self.widget_layout)
+
+        # Set the main layout for the window
+        self.setLayout(main_layout)
+
+        self.setFixedSize(1000, 525)
+        #self.setGeometry(100, 100, 1000, 300)
+        self.setWindowTitle('VRCazam')
+        self.updateWidgets()
+        self.show()
+
+    def print_log_message(self, message):
+        item = QListWidgetItem(message)  # Create a list item with the message
+        self.list_view.addItem(item)  # Add the item to the list view
+
+    def updateWidgets(self):
+        #self.updateUI.emit()
+        # Clear the existing widget layout
+        while self.widget_layout.count():
+            item = self.widget_layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
 
         # Load widget names from JSON file
         with open("detected-tracks.json") as json_file:
@@ -29,7 +58,10 @@ class MyWindow(QWidget):
 
         tracks.reverse()
 
-        for track in tracks:
+        for i, track in enumerate(tracks):
+            if i == 5:
+                break
+
             # Create a frame for each widget item
             widget_frame = QFrame()
             widget_frame.setFrameShape(QFrame.StyledPanel)
@@ -73,7 +105,7 @@ class MyWindow(QWidget):
 
                 url_label.setText("<a href='{0}'><img src='{1}' width='37' height='37'></a>".format(track["apple_music_uri"], "assets/apple-music.svg"))
                 provider_layout.addWidget(url_label)
-            
+
             for provider in track["track_providers"]:
                 url_label = QLabel()
                 url_label.setOpenExternalLinks(True)
@@ -91,20 +123,9 @@ class MyWindow(QWidget):
             widget_vertical_layout.addLayout(provider_layout)  # Add provider layout to the widget layout
 
             # Add the widget frame to the layout
-            widget_layout.addWidget(widget_frame)
-
-        # Add the list view and the widget layout to the main layout
-        main_layout.addWidget(list_view)
-        main_layout.addLayout(widget_layout)
-
-        # Set the main layout for the window
-        self.setLayout(main_layout)
-
-        self.setGeometry(100, 100, 500, 300)
-        self.setWindowTitle('PyQt5 Widget Example')
-        self.show()
+            self.widget_layout.addWidget(widget_frame)
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
+    app = QApplication([])
     window = MyWindow()
     sys.exit(app.exec_())
