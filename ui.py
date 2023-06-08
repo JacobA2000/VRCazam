@@ -1,9 +1,10 @@
 import sys
 import json
 import requests
-from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QListWidget, QListWidgetItem, QLabel, QVBoxLayout, QFrame
+from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QListWidget, QListWidgetItem, QLabel, QVBoxLayout, QFrame, QSizePolicy
 from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
+from PyQt5.QtCore import Qt
 
 class MyWindow(QWidget):
     def __init__(self):
@@ -26,13 +27,17 @@ class MyWindow(QWidget):
             data = json.load(json_file)
             tracks = data
 
+        tracks.reverse()
+
         for track in tracks:
             # Create a frame for each widget item
             widget_frame = QFrame()
             widget_frame.setFrameShape(QFrame.StyledPanel)
+            widget_frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)  # Set the size policy
 
             # Create a horizontal layout for the widget
             widget_horizontal_layout = QHBoxLayout(widget_frame)
+            widget_horizontal_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
 
             # Create an image label
             image_label = QLabel()
@@ -46,6 +51,7 @@ class MyWindow(QWidget):
             # Create a vertical layout for the widget
             widget_vertical_layout = QVBoxLayout()
             widget_horizontal_layout.addLayout(widget_vertical_layout)
+            widget_vertical_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
 
             # Add label to the vertical layout
             song_name_label = QLabel(track["title"])
@@ -55,6 +61,34 @@ class MyWindow(QWidget):
             # Add label to the vertical layout
             song_artist_label = QLabel(track["artist"])
             widget_vertical_layout.addWidget(song_artist_label)
+
+            # Add clickable URLs as labels with images
+            provider_layout = QHBoxLayout()  # Create horizontal layout for provider images
+            provider_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
+
+            if track["apple_music_uri"] is not None:
+                url_label = QLabel()
+                url_label.setOpenExternalLinks(True)
+                url_label.setTextFormat(Qt.RichText)
+
+                url_label.setText("<a href='{0}'><img src='{1}' width='37' height='37'></a>".format(track["apple_music_uri"], "assets/apple-music.svg"))
+                provider_layout.addWidget(url_label)
+            
+            for provider in track["track_providers"]:
+                url_label = QLabel()
+                url_label.setOpenExternalLinks(True)
+                url_label.setTextFormat(Qt.RichText)
+
+                provider_image = ""
+                if provider["platform"] == "SPOTIFY":
+                    provider_image = "assets/spotify.svg"
+                elif provider["platform"] == "DEEZER":
+                    provider_image = "assets/deezer.svg"
+
+                url_label.setText("<a href='{0}'><img src='{1}' width='37' height='37'></a>".format(provider["uri"], provider_image))
+                provider_layout.addWidget(url_label)
+
+            widget_vertical_layout.addLayout(provider_layout)  # Add provider layout to the widget layout
 
             # Add the widget frame to the layout
             widget_layout.addWidget(widget_frame)
