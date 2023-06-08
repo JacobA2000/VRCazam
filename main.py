@@ -73,7 +73,6 @@ def SongSearchInit(address, *args):
 
         SendNotification(content=track_msg[0], msg_type=track_msg[1])
 
-
 def SendNotification(content, msg_type):
 
     match notification_method:
