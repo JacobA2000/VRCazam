@@ -12,18 +12,18 @@ import io
 from pythonosc import dispatcher, osc_server
 import socket
 import threading
-
 from PyQt5.QtCore import pyqtSlot
-
 from ui import MyWindow
 
 app = QApplication(sys.argv)
 # Create the main window
 window = MyWindow()
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
 # FILE PATHS
-CONFIG_FILE = "./config.ini"
-TRACK_LOG_FILE_PATH = "./detected-tracks.json"
+CONFIG_FILE = os.path.join(script_dir, 'config.ini')
+TRACK_LOG_FILE_PATH = os.path.join(script_dir, 'detected-tracks.json')
 
 # Create a ConfigParser object
 config = configparser.ConfigParser()

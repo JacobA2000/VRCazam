@@ -4,6 +4,11 @@ import requests
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QListWidget, QListWidgetItem, QLabel, QVBoxLayout, QFrame, QSizePolicy
 from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtCore import pyqtSignal, QObject, Qt, QThread
+import os
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+detected_tracks_file_path = os.path.join(script_dir, 'detected-tracks.json')
+assets_file_path = os.path.join(script_dir, 'assets')
 
 # Main window class
 class MyWindow(QWidget):
@@ -20,7 +25,6 @@ class MyWindow(QWidget):
         
         # Create the list view
         self.list_view = QListWidget()
-        self.list_view.setDisabled(True)
 
         # Create a vertical layout for the widget items
         self.widget_layout = QVBoxLayout()
@@ -52,7 +56,7 @@ class MyWindow(QWidget):
                 widget.deleteLater()
 
         # Load widget names from JSON file
-        with open("detected-tracks.json") as json_file:
+        with open(detected_tracks_file_path) as json_file:
             data = json.load(json_file)
             tracks = data
 
@@ -103,7 +107,7 @@ class MyWindow(QWidget):
                 url_label.setOpenExternalLinks(True)
                 url_label.setTextFormat(Qt.RichText)
 
-                url_label.setText("<a href='{0}'><img src='{1}' width='37' height='37'></a>".format(track["apple_music_uri"], "assets/apple-music.svg"))
+                url_label.setText("<a href='{0}'><img src='{1}' width='37' height='37'></a>".format(track["apple_music_uri"], f"{assets_file_path}/apple-music.svg"))
                 provider_layout.addWidget(url_label)
 
             for provider in track["track_providers"]:
@@ -113,9 +117,9 @@ class MyWindow(QWidget):
 
                 provider_image = ""
                 if provider["platform"] == "SPOTIFY":
-                    provider_image = "assets/spotify.svg"
+                    provider_image = f"{assets_file_path}/spotify.svg"
                 elif provider["platform"] == "DEEZER":
-                    provider_image = "assets/deezer.svg"
+                    provider_image = f"{assets_file_path}/deezer.svg"
 
                 url_label.setText("<a href='{0}'><img src='{1}' width='37' height='37'></a>".format(provider["uri"], provider_image))
                 provider_layout.addWidget(url_label)
