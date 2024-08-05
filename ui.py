@@ -76,10 +76,15 @@ class MyWindow(QWidget):
             widget_horizontal_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
 
             # Create an image label
-            image_label = QLabel()
-            image_data = requests.get(track["cover_art"]).content
+            image_label = QLabel() 
             pixmap = QPixmap()
-            pixmap.loadFromData(image_data)
+
+            if track["cover_art"] is not None:
+                image_data = requests.get(track["cover_art"]).content
+                pixmap.loadFromData(image_data)
+            else:
+                pixmap.load(f"{assets_file_path}/placeholderambart.png")
+                
             pixmap = pixmap.scaled(75, 75)  # Set maximum size to 75x75 pixels
             image_label.setPixmap(pixmap)
             widget_horizontal_layout.addWidget(image_label)

@@ -140,7 +140,7 @@ def LogDetectedTrack(track_data):
     needed_track_data = {
         "title": track_data["title"],
         "artist": track_data["subtitle"],
-        "cover_art": track_data["images"]["coverarthq"],
+        "cover_art": track_data["images"]["coverarthq"] if "images" in track_data.keys() else None,
         "apple_music_uri": f"https://music.apple.com/us/song/{track_data['hub']['actions'][0]['id']}" if 'hub' in track_data and 'actions' in track_data['hub'] and track_data['hub']['actions'][0]['id'] else None,
         "track_providers": [{"platform": item["type"], "uri": item["actions"][0]["uri"]} for item in track_data["hub"]["providers"]],
         "time_detected": int(datetime.now().timestamp())
