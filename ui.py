@@ -1,7 +1,7 @@
 import sys
 import json
 import requests
-from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QListWidget, QListWidgetItem, QLabel, QVBoxLayout, QFrame, QSizePolicy, QPushButton
+from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QListWidget, QListWidgetItem, QLabel, QVBoxLayout, QFrame, QSizePolicy, QPushButton, QScrollArea
 from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtCore import pyqtSignal, QObject, Qt, QThread
 import os
@@ -95,10 +95,8 @@ class MyWindow(QWidget):
         self.track_search_thread.start()
 
     def viewHistory(self):
-        # Temporary just open the json file
-        os.system(f"start {detected_tracks_file_path}")
-
-        # Todo open a new window with the history
+        self.history_window = HistoryWindow()
+        self.history_window.show()
 
     def openSettings(self):
         print("Settings clicked")
@@ -194,6 +192,116 @@ class MyWindow(QWidget):
 
             # Add the widget frame to the layout
             self.widget_layout.addWidget(widget_frame)
+
+class HistoryWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle('Track History')
+        self.setMinimumSize(800, 600)
+
+        # Create the main layout
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(10, 10, 10, 10)
+        main_layout.setSpacing(10)
+
+        # Create a scroll area
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # Disable horizontal scrolling
+
+        # Create a widget for the scroll area
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout(scroll_widget)
+        scroll_layout.setContentsMargins(0, 0, 0, 0)
+        scroll_layout.setSpacing(10)
+
+        # Load widget names from JSON file
+        with open(detected_tracks_file_path) as json_file:
+            data = json.load(json_file)
+            tracks = data
+
+        tracks.reverse()
+
+        for track in tracks:
+            # Create a frame for each widget item
+            widget_frame = QFrame()
+            widget_frame.setFrameShape(QFrame.StyledPanel)
+            widget_frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)  # Set the size policy
+
+            # Create a horizontal layout for the widget
+            widget_horizontal_layout = QHBoxLayout(widget_frame)
+            widget_horizontal_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
+
+            # Create an image label
+            image_label = QLabel()
+            pixmap = QPixmap()
+
+            if track["cover_art"] is not None:
+                image_data = requests.get(track["cover_art"]).content
+                pixmap.loadFromData(image_data)
+            else:
+                pixmap.load(f"{assets_file_path}/placeholderambart.png")
+
+            pixmap = pixmap.scaled(75, 75)  # Set maximum size to 75x75 pixels
+            image_label.setPixmap(pixmap)
+            widget_horizontal_layout.addWidget(image_label)
+
+            # Create a vertical layout for the widget
+            widget_vertical_layout = QVBoxLayout()
+            widget_horizontal_layout.addLayout(widget_vertical_layout)
+            widget_vertical_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
+
+            # Add label to the vertical layout
+            song_name_label = QLabel(track["title"])
+            song_name_label.setFont(QFont("Arial", 10, QFont.Bold))
+            widget_vertical_layout.addWidget(song_name_label)
+
+            # Add label to the vertical layout
+            song_artist_label = QLabel(track["artist"])
+            widget_vertical_layout.addWidget(song_artist_label)
+
+            # Add clickable URLs as labels with images
+            provider_layout = QHBoxLayout()  # Create horizontal layout for provider images
+            provider_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
+
+            if track["apple_music_uri"] is not None:
+                url_label = QLabel()
+                url_label.setOpenExternalLinks(True)
+                url_label.setTextFormat(Qt.RichText)
+
+                url_label.setText("<a href='{0}'><img src='{1}' width='37' height='37'></a>".format(track["apple_music_uri"], f"{assets_file_path}/apple-music.svg"))
+                provider_layout.addWidget(url_label)
+
+            for provider in track["track_providers"]:
+                url_label = QLabel()
+                url_label.setOpenExternalLinks(True)
+                url_label.setTextFormat(Qt.RichText)
+
+                provider_image = ""
+                if provider["platform"] == "SPOTIFY":
+                    provider_image = f"{assets_file_path}/spotify.svg"
+                elif provider["platform"] == "DEEZER":
+                    provider_image = f"{assets_file_path}/deezer.svg"
+
+                url_label.setText("<a href='{0}'><img src='{1}' width='37' height='37'></a>".format(provider["uri"], provider_image))
+                provider_layout.addWidget(url_label)
+
+            widget_vertical_layout.addLayout(provider_layout)  # Add provider layout to the widget layout
+
+            # Add the widget frame to the layout
+            scroll_layout.addWidget(widget_frame)
+
+        # Set the scroll widget
+        scroll_area.setWidget(scroll_widget)
+
+        # Add the scroll area to the main layout
+        main_layout.addWidget(scroll_area)
+
+        # Set the main layout for the window
+        self.setLayout(main_layout)
 
 app = QApplication(sys.argv)
 # Create the main window
