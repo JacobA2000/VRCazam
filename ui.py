@@ -6,6 +6,8 @@ from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtCore import pyqtSignal, QObject, Qt, QThread
 import os
 
+import TrackRecognitionHandler
+
 script_dir = os.path.dirname(os.path.abspath(__file__))
 detected_tracks_file_path = os.path.join(script_dir, 'detected-tracks.json')
 assets_file_path = os.path.join(script_dir, 'assets')
@@ -48,10 +50,12 @@ class MyWindow(QWidget):
         button3 = QPushButton('Settings')
 
         # Connect buttons to functions
-        # button1.clicked.connect()
+        button1.clicked.connect(TrackRecognitionHandler.TrackSearchInit)
 
         # Add buttons to the button layout
         button_layout.addWidget(button1)
+        button_layout.addWidget(button2)
+        button_layout.addWidget(button3)
 
         # Add the button layout to the main layout
         main_layout.addLayout(button_layout)

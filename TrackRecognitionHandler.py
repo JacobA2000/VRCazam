@@ -3,10 +3,10 @@ import soundcard as sc
 import soundfile as sf
 import io
 
-from ui import window
+import ui
 from NotificationHandler import SendNotification
 from LogHandler import LogDetectedTrack, LogMessage
-from ConfigHandler import sample_rate, record_sec, notification_method, notification_duration
+from ConfigHandler import sample_rate, record_sec
 
 def RecordAudioBytes(sr, rs):
     LogMessage("Recording...")
@@ -49,10 +49,8 @@ def TrackSearchInit(address, *args):
         LogMessage(f"OSC Message Received on address {address}.")
         audio_bytes = RecordAudioBytes(sample_rate, record_sec)
         track_msg = RecognizeSong(audio_bytes)
-        window.updateUI.emit()
+        ui.window.updateUI.emit()
         SendNotification(
             content=track_msg[0], 
             msg_type=track_msg[1], 
-            notification_method=notification_method, 
-            notification_duration=notification_duration
         )

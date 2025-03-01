@@ -2,15 +2,16 @@ import json
 from datetime import datetime
 
 from ConfigHandler import TRACK_LOG_FILE_PATH
-from ui import window
+#from ui import window
+import ui
 
 def LogMessage(message):
     print(message)
-    window.print_log_message(message)
+    ui.window.print_log_message(message)
 
 def LogDetectedTrack(track_data):
     print("Logging Track...")
-    window.print_log_message("Logging Track...")
+    ui.window.print_log_message("Logging Track...")
 
     with open(TRACK_LOG_FILE_PATH) as track_log:
         track_log_list = json.load(track_log)
@@ -30,4 +31,4 @@ def LogDetectedTrack(track_data):
         json.dump(track_log_list, track_log, indent=4, separators=(',',': '))
 
     print("Finished logging track.")
-    window.print_log_message("Finished logging track.")
+    ui.window.print_log_message("Finished logging track.")
