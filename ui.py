@@ -83,7 +83,10 @@ class MyWindow(QWidget):
         self.track_search_thread.start()
 
     def viewHistory(self):
-        print("View History clicked")
+        # Temporary just open the json file
+        os.system(f"start {detected_tracks_file_path}")
+
+        # Todo open a new window with the history
 
     def openSettings(self):
         print("Settings clicked")

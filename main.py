@@ -18,7 +18,7 @@ def run_osc_server():
 
     # Set up the OSC server to listen on port 9001
     osc_thread = osc_server.ThreadingOSCUDPServer((osc_ip, osc_port), osc_dispatcher)
-    LogMessage(f"Listening for OSC messages on port {osc_port}...")
+    LogMessage(f"Listening for OSC messages on port {osc_port}...", logLevel="INFO")
     # Start the OSC server
     osc_thread.serve_forever()
 

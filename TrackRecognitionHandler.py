@@ -9,7 +9,7 @@ from LogHandler import LogDetectedTrack, LogMessage
 from ConfigHandler import sample_rate, record_sec
 
 def RecordAudioBytes(sr, rs):
-    LogMessage("Recording...")
+    LogMessage("Recording...", logLevel="INFO")
     with sc.get_microphone(id=str(sc.default_speaker().name), include_loopback=True).recorder(samplerate=sr) as mic:
         # record audio with loopback from default speaker.
         data = mic.record(numframes=sr*rs)
@@ -19,7 +19,7 @@ def RecordAudioBytes(sr, rs):
             sf.write(file=f, data=data[:, 0], samplerate=sr, format='wav')
             audio_bytes = f.getvalue()
 
-    LogMessage("Finished recording.")
+    LogMessage("Finished recording.", logLevel="INFO")
 
     return audio_bytes
 
@@ -36,17 +36,17 @@ def RecognizeSong(audio_bytes):
                 # LOG SONG
                 LogDetectedTrack(track_data)
                 track_msg = f"{track_data['title']} - {track_data['subtitle']}"
-                LogMessage(f"Song Recognized - {track_msg}")
+                LogMessage(f"Song Recognized - {track_msg}", logLevel="SUCCESS")
                 return (track_msg, "Song Recognized")
 
         except StopIteration:
-            LogMessage("Couldn't identify song!")
+            LogMessage("Couldn't identify song!", logLevel="WARNING")
 
             return ("Shazam couldn't identify the song, please try again.", "Couldn't identify song!")
 
 def TrackSearchInit(address, *args):
     if args[0] == True:
-        LogMessage(f"OSC Message Received on address {address}.")
+        LogMessage(f"OSC Message Received on address {address}.", logLevel="INFO")
         audio_bytes = RecordAudioBytes(sample_rate, record_sec)
         track_msg = RecognizeSong(audio_bytes)
         ui.window.updateUI.emit()
