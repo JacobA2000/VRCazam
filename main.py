@@ -1,138 +1,24 @@
 import sys
 import os
 import json
-from datetime import datetime
-import configparser
-from PyQt5.QtWidgets import QApplication
-from ShazamAPI import Shazam
-import soundcard as sc
-import soundfile as sf
-import io
 from pythonosc import dispatcher, osc_server
 import threading
 from PyQt5.QtCore import pyqtSlot
-from ui import MyWindow
 
-from NotificationHandler import SendNotification
-
-app = QApplication(sys.argv)
-# Create the main window
-window = MyWindow()
-
-script_dir = os.path.dirname(os.path.abspath(__file__))
-
-# FILE PATHS
-CONFIG_FILE = os.path.join(script_dir, 'config.ini')
-TRACK_LOG_FILE_PATH = os.path.join(script_dir, 'detected-tracks.json')
-
-# Create a ConfigParser object
-config = configparser.ConfigParser()
-
-# Read the config file
-config.read(CONFIG_FILE)
-
-# Access the variables under the [RECORDING] section
-sample_rate = config.getint('RECORDING', 'SAMPLE_RATE')
-record_sec = config.getint('RECORDING', 'RECORD_SEC')
-
-# Access the variables under the [NOTIFICATIONS] section
-notification_method = config.getint('NOTIFICATIONS', 'NOTIFICATION_METHOD')
-notification_duration = config.getint('NOTIFICATIONS', 'NOTIFICATION_DURATION')
-
-# Access the variables under the [OSC] section
-osc_port = config.getint('OSC', 'PORT')
-osc_ip = config.get('OSC', 'IP')
-osc_parameter = config.get('OSC', 'PARAMETER_NAME')
-
-def RecordAudioBytes(sr, rs):
-    print("Recording...")
-    window.print_log_message("Recording...")
-    with sc.get_microphone(id=str(sc.default_speaker().name), include_loopback=True).recorder(samplerate=sr) as mic:
-        # record audio with loopback from default speaker.
-        data = mic.record(numframes=sr*rs)
-
-        # change "data=data[:, 0]" to "data=data", if you would like to write audio as multiple-channels.
-        with io.BytesIO() as f:
-            sf.write(file=f, data=data[:, 0], samplerate=sr, format='wav')
-            audio_bytes = f.getvalue()
-
-    print("Finished recording.")
-    window.print_log_message("Finished recording.")
-
-    return audio_bytes
-
-def RecognizeSong(audio_bytes):
-    shazam = Shazam(audio_bytes)
-    recognize_generator = shazam.recognizeSong()
-
-    while True:
-        try:
-            shazam_data = next(recognize_generator)
-            
-            if "track" in shazam_data[1]:
-                track_data = shazam_data[1]["track"]
-                # LOG SONG
-                LogDetectedTrack(track_data)
-                track_msg = f"{track_data['title']} - {track_data['subtitle']}"
-                print(f"Song Recognized - {track_msg}")
-                window.print_log_message(f"Song Recognized - {track_msg}")
-                return (track_msg, "Song Recognized")
-
-        except StopIteration:
-            print("Couldn't identify song!")
-            window.print_log_message("Couldn't identify song!")
-
-            return ("Shazam couldn't identify the song, please try again.", "Couldn't identify song!")
-
-def SongSearchInit(address, *args):
-    if args[0] == True:
-        print(f"OSC Message Received on address {address}.")
-        window.print_log_message(f"OSC Message Received on address {address}.")
-        audio_bytes = RecordAudioBytes(sample_rate, record_sec)
-        track_msg = RecognizeSong(audio_bytes)
-        window.updateUI.emit()
-        SendNotification(
-            content=track_msg[0], 
-            msg_type=track_msg[1], 
-            notification_method=notification_method, 
-            notification_duration=notification_duration
-        )
-
-def LogDetectedTrack(track_data):
-    print("Logging Track...")
-    window.print_log_message("Logging Track...")
-
-    with open(TRACK_LOG_FILE_PATH) as track_log:
-        track_log_list = json.load(track_log)
-    
-    needed_track_data = {
-        "title": track_data["title"],
-        "artist": track_data["subtitle"],
-        "cover_art": track_data["images"]["coverarthq"] if "images" in track_data.keys() else None,
-        "apple_music_uri": f"https://music.apple.com/us/song/{track_data['hub']['actions'][0]['id']}" if 'hub' in track_data and 'actions' in track_data['hub'] and track_data['hub']['actions'][0]['id'] else None,
-        "track_providers": [{"platform": item["type"], "uri": item["actions"][0]["uri"]} for item in track_data["hub"]["providers"]],
-        "time_detected": int(datetime.now().timestamp())
-    }
-    
-    track_log_list.append(needed_track_data)
-
-    with open(TRACK_LOG_FILE_PATH, "w+") as track_log:
-        json.dump(track_log_list, track_log, indent=4, separators=(',',': '))
-
-    print("Finished logging track.")
-    window.print_log_message("Finished logging track.")
+from ui import window, app
+from ConfigHandler import TRACK_LOG_FILE_PATH, osc_port, osc_ip, osc_parameter
+from TrackRecognitionHandler import TrackSearchInit
+from LogHandler import LogMessage
 
 def run_osc_server():
     global osc_thread
     # Set up the dispatcher to route messages to the function
     osc_dispatcher = dispatcher.Dispatcher()
-    osc_dispatcher.map(f"/avatar/parameters/{osc_parameter}", SongSearchInit)
+    osc_dispatcher.map(f"/avatar/parameters/{osc_parameter}", TrackSearchInit)
 
     # Set up the OSC server to listen on port 9001
     osc_thread = osc_server.ThreadingOSCUDPServer((osc_ip, osc_port), osc_dispatcher)
-    print(f"Listening for OSC messages on port {osc_port}...")
-    window.print_log_message(f"Listening for OSC messages on port {osc_port}...")
-
+    LogMessage(f"Listening for OSC messages on port {osc_port}...")
     # Start the OSC server
     osc_thread.serve_forever()
 

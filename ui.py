@@ -157,6 +157,10 @@ class MyWindow(QWidget):
             # Add the widget frame to the layout
             self.widget_layout.addWidget(widget_frame)
 
+app = QApplication(sys.argv)
+# Create the main window
+window = MyWindow()
+
 if __name__ == '__main__':
     app = QApplication([])
     window = MyWindow()
