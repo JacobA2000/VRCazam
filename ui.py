@@ -1,7 +1,7 @@
 import sys
 import json
 import requests
-from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QListWidget, QListWidgetItem, QLabel, QVBoxLayout, QFrame, QSizePolicy
+from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QListWidget, QListWidgetItem, QLabel, QVBoxLayout, QFrame, QSizePolicy, QPushButton
 from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtCore import pyqtSignal, QObject, Qt, QThread
 import os
@@ -21,7 +21,10 @@ class MyWindow(QWidget):
 
     def initUI(self):
         # Create the main layout
-        main_layout = QHBoxLayout()
+        main_layout = QVBoxLayout()  # Change to QVBoxLayout to stack vertically
+        
+        # Create a horizontal layout for the list and widgets
+        content_layout = QHBoxLayout()
         
         # Create the list view
         self.list_view = QListWidget()
@@ -29,9 +32,29 @@ class MyWindow(QWidget):
         # Create a vertical layout for the widget items
         self.widget_layout = QVBoxLayout()
 
-        # Add the list view and the widget layout to the main layout
-        main_layout.addWidget(self.list_view)
-        main_layout.addLayout(self.widget_layout)
+        # Add the list view and the widget layout to the content layout
+        content_layout.addWidget(self.list_view)
+        content_layout.addLayout(self.widget_layout)
+
+        # Add the content layout to the main layout
+        main_layout.addLayout(content_layout)
+
+        # Create a horizontal layout for the buttons
+        button_layout = QHBoxLayout()
+
+        # Create buttons
+        button1 = QPushButton('Start Song Search')
+        button2 = QPushButton('View History')
+        button3 = QPushButton('Settings')
+
+        # Connect buttons to functions
+        # button1.clicked.connect()
+
+        # Add buttons to the button layout
+        button_layout.addWidget(button1)
+
+        # Add the button layout to the main layout
+        main_layout.addLayout(button_layout)
 
         # Set the main layout for the window
         self.setLayout(main_layout)
