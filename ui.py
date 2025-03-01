@@ -29,18 +29,24 @@ class MyWindow(QWidget):
         self.track_search_thread = TrackSearchThread()
 
     def initUI(self):
-
         # Create the main layout
         main_layout = QVBoxLayout()  # Change to QVBoxLayout to stack vertically
+        main_layout.setContentsMargins(10, 10, 10, 10)
+        main_layout.setSpacing(10)
         
         # Create a horizontal layout for the list and widgets
         content_layout = QHBoxLayout()
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(10)
         
         # Create the list view
         self.list_view = QListWidget()
+        self.list_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # Create a vertical layout for the widget items
         self.widget_layout = QVBoxLayout()
+        self.widget_layout.setContentsMargins(0, 0, 0, 0)
+        self.widget_layout.setSpacing(10)
 
         # Add the list view and the widget layout to the content layout
         content_layout.addWidget(self.list_view)
@@ -51,11 +57,18 @@ class MyWindow(QWidget):
 
         # Create a horizontal layout for the buttons
         button_layout = QHBoxLayout()
+        button_layout.setContentsMargins(0, 0, 0, 0)
+        button_layout.setSpacing(10)
 
         # Create buttons
         button1 = QPushButton('Start Track Search')
         button2 = QPushButton('View History')
         button3 = QPushButton('Settings')
+
+        # Set size policy for buttons
+        button1.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        button2.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        button3.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         # Connect buttons to functions
         button1.clicked.connect(self.TrackSearchClick)
@@ -73,8 +86,7 @@ class MyWindow(QWidget):
         # Set the main layout for the window
         self.setLayout(main_layout)
 
-        self.setFixedSize(1000, 525)
-        #self.setGeometry(100, 100, 1000, 300)
+        self.setMinimumSize(800, 600)
         self.setWindowTitle('VRCazam')
         self.updateWidgets()
         self.show()
