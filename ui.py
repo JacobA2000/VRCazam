@@ -12,6 +12,12 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 detected_tracks_file_path = os.path.join(script_dir, 'detected-tracks.json')
 assets_file_path = os.path.join(script_dir, 'assets')
 
+class TrackSearchThread(QThread):
+    log_message = pyqtSignal(str)
+
+    def run(self):
+        TrackRecognitionHandler.TrackSearchInit("test", True)
+
 # Main window class
 class MyWindow(QWidget):
     
@@ -20,8 +26,10 @@ class MyWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
+        self.track_search_thread = TrackSearchThread()
 
     def initUI(self):
+
         # Create the main layout
         main_layout = QVBoxLayout()  # Change to QVBoxLayout to stack vertically
         
@@ -45,12 +53,14 @@ class MyWindow(QWidget):
         button_layout = QHBoxLayout()
 
         # Create buttons
-        button1 = QPushButton('Start Song Search')
+        button1 = QPushButton('Start Track Search')
         button2 = QPushButton('View History')
         button3 = QPushButton('Settings')
 
         # Connect buttons to functions
-        button1.clicked.connect(TrackRecognitionHandler.TrackSearchInit)
+        button1.clicked.connect(self.TrackSearchClick)
+        button2.clicked.connect(self.viewHistory)
+        button3.clicked.connect(self.openSettings)
 
         # Add buttons to the button layout
         button_layout.addWidget(button1)
@@ -68,6 +78,15 @@ class MyWindow(QWidget):
         self.setWindowTitle('VRCazam')
         self.updateWidgets()
         self.show()
+
+    def TrackSearchClick(self):
+        self.track_search_thread.start()
+
+    def viewHistory(self):
+        print("View History clicked")
+
+    def openSettings(self):
+        print("Settings clicked")
 
     def print_log_message(self, message):
         item = QListWidgetItem(message)  # Create a list item with the message
