@@ -6,10 +6,10 @@ import io
 import ui
 from NotificationHandler import SendNotification
 from LogHandler import LogDetectedTrack, LogMessage
-from ConfigHandler import sample_rate, record_sec
+from ConfigHandler import config
 
 def RecordAudioBytes(sr, rs):
-    LogMessage("Recording...", logLevel="INFO")
+    LogMessage(f"Recording for {rs} seconds at {sr} Hz.", logLevel="INFO")    
     with sc.get_microphone(id=str(sc.default_speaker().name), include_loopback=True).recorder(samplerate=sr) as mic:
         # record audio with loopback from default speaker.
         data = mic.record(numframes=sr*rs)
@@ -47,6 +47,11 @@ def RecognizeSong(audio_bytes):
 def TrackSearchInit(address, *args):
     if args[0] == True:
         LogMessage(f"OSC Message Received on address {address}.", logLevel="INFO")
+
+        # Get up to date settings values from the config file
+        sample_rate = config.getint('RECORDING', 'SAMPLE_RATE')
+        record_sec = config.getint('RECORDING', 'RECORD_SEC')   
+
         audio_bytes = RecordAudioBytes(sample_rate, record_sec)
         track_msg = RecognizeSong(audio_bytes)
         ui.window.updateUI.emit()

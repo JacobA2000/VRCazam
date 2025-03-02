@@ -2,9 +2,14 @@ from plyer import notification
 import socket
 import json
 
-from ConfigHandler import notification_method, notification_duration
+from ConfigHandler import config
 
 def SendNotification(content, msg_type):
+    
+    # GET NOTIFICATION SETTINGS
+    notification_method = config.getint('NOTIFICATIONS', 'NOTIFICATION_METHOD')
+    notification_duration = config.getint('NOTIFICATIONS', 'NOTIFICATION_DURATION')
+
     if notification_method == 0:
         notification.notify(
             title=f"VRCazam - {msg_type}",

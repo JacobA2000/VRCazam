@@ -1,12 +1,21 @@
 import sys
 import json
 import requests
-from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QListWidget, QListWidgetItem, QLabel, QVBoxLayout, QFrame, QSizePolicy, QPushButton, QScrollArea
+from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QListWidget, QListWidgetItem, QLabel, QVBoxLayout, QFrame, QSizePolicy, QPushButton, QScrollArea, QFormLayout, QLineEdit
 from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtCore import pyqtSignal, QObject, Qt, QThread
 import os
 
 import TrackRecognitionHandler
+from ConfigHandler import config, set_sample_rate, set_record_sec, set_notification_method, set_notification_duration, set_osc_port, set_osc_ip, set_osc_parameter
+
+sample_rate = config.getint('RECORDING', 'SAMPLE_RATE')
+record_sec = config.getint('RECORDING', 'RECORD_SEC')
+notification_method = config.getint('NOTIFICATIONS', 'NOTIFICATION_METHOD')
+notification_duration = config.getint('NOTIFICATIONS', 'NOTIFICATION_DURATION')
+osc_port = config.getint('OSC', 'PORT')
+osc_ip = config.get('OSC', 'IP')
+osc_parameter = config.get('OSC', 'PARAMETER_NAME')
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 detected_tracks_file_path = os.path.join(script_dir, 'detected-tracks.json')
@@ -17,6 +26,72 @@ class TrackSearchThread(QThread):
 
     def run(self):
         TrackRecognitionHandler.TrackSearchInit("test", True)
+
+class SettingsWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle('Settings')
+        self.setMinimumSize(400, 300)
+
+        # Create the main layout
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(10, 10, 10, 10)
+        main_layout.setSpacing(10)
+
+        # Create form layout for settings
+        form_layout = QFormLayout()
+
+        # Sample rate setting
+        self.sample_rate_input = QLineEdit(str(config.getint('RECORDING', 'SAMPLE_RATE')))
+        form_layout.addRow('Sample Rate:', self.sample_rate_input)
+
+        # Record seconds setting
+        self.record_sec_input = QLineEdit(str(config.getint('RECORDING', 'RECORD_SEC')))
+        form_layout.addRow('Record Seconds:', self.record_sec_input)
+
+        # Notification method setting
+        self.notification_method_input = QLineEdit(str(config.getint('NOTIFICATIONS', 'NOTIFICATION_METHOD')))
+        form_layout.addRow('Notification Method:', self.notification_method_input)
+
+        # Notification duration setting
+        self.notification_duration_input = QLineEdit(str(config.getint('NOTIFICATIONS', 'NOTIFICATION_DURATION')))
+        form_layout.addRow('Notification Duration:', self.notification_duration_input)
+
+        # OSC port setting
+        self.osc_port_input = QLineEdit(str(config.getint('OSC', 'PORT')))
+        form_layout.addRow('OSC Port:', self.osc_port_input)
+
+        # OSC IP setting
+        self.osc_ip_input = QLineEdit(config.get('OSC', 'IP'))
+        form_layout.addRow('OSC IP:', self.osc_ip_input)
+
+        # OSC parameter setting
+        self.osc_parameter_input = QLineEdit(config.get('OSC', 'PARAMETER_NAME'))
+        form_layout.addRow('OSC Parameter:', self.osc_parameter_input)
+
+        # Save button
+        save_button = QPushButton('Save')
+        save_button.clicked.connect(self.save_settings)
+        form_layout.addRow(save_button)
+
+        # Add form layout to main layout
+        main_layout.addLayout(form_layout)
+
+        # Set the main layout for the window
+        self.setLayout(main_layout)
+
+    def save_settings(self):
+        set_sample_rate(int(self.sample_rate_input.text()))
+        set_record_sec(int(self.record_sec_input.text()))
+        set_notification_method(int(self.notification_method_input.text()))
+        set_notification_duration(int(self.notification_duration_input.text()))
+        set_osc_port(int(self.osc_port_input.text()))
+        set_osc_ip(self.osc_ip_input.text())
+        set_osc_parameter(self.osc_parameter_input.text())
+        self.close()
 
 # Main window class
 class MyWindow(QWidget):
@@ -99,7 +174,8 @@ class MyWindow(QWidget):
         self.history_window.show()
 
     def openSettings(self):
-        print("Settings clicked")
+        self.settings_window = SettingsWindow()
+        self.settings_window.show()
 
     def print_log_message(self, message):
         item = QListWidgetItem(message)  # Create a list item with the message

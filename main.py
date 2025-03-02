@@ -6,12 +6,18 @@ import threading
 from PyQt5.QtCore import pyqtSlot
 
 from ui import window, app
-from ConfigHandler import TRACK_LOG_FILE_PATH, osc_port, osc_ip, osc_parameter
+from ConfigHandler import TRACK_LOG_FILE_PATH, config
 from TrackRecognitionHandler import TrackSearchInit
 from LogHandler import LogMessage
 
 def run_osc_server():
     global osc_thread
+
+    # Get OSC port, IP and parameter from the config file
+    osc_port = config.getint('OSC', 'PORT')
+    osc_ip = config.get('OSC', 'IP')
+    osc_parameter = config.get('OSC', 'PARAMETER_NAME')
+
     # Set up the dispatcher to route messages to the function
     osc_dispatcher = dispatcher.Dispatcher()
     osc_dispatcher.map(f"/avatar/parameters/{osc_parameter}", TrackSearchInit)

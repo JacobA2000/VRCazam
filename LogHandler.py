@@ -60,5 +60,4 @@ def LogDetectedTrack(track_data):
     with open(TRACK_LOG_FILE_PATH, "w+") as track_log:
         json.dump(track_log_list, track_log, indent=4, separators=(',',': '))
 
-    print("Finished logging track.")
-    ui.window.print_log_message("Finished logging track.")
+    LogMessage("Finished logging track.", logLevel="INFO")
