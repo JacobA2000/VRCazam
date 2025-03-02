@@ -1,6 +1,7 @@
 import configparser
 import os
-import soundcard as sc
+
+from LogHandler import LogMessage
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -31,12 +32,19 @@ default_config = {
 # Check if the config file exists, if not create it with default values
 if not os.path.isfile(CONFIG_FILE):
     config.read_dict(default_config)
+
+    LogMessage("Config file not found, creating a new one with default values.", logLevel="INFO", print_to_ui=False)
     
     with open(CONFIG_FILE, 'w') as configfile:
         config.write(configfile)
+    
+    LogMessage(f"Config file created at {CONFIG_FILE}.", logLevel="SUCCESS", print_to_ui=False)
+    config.read(CONFIG_FILE)
 
-# Read the config file
-config.read(CONFIG_FILE)
+else:
+    LogMessage(f"Config file found at {CONFIG_FILE}.", logLevel="INFO", print_to_ui=False)
+    # Read the config file
+    config.read(CONFIG_FILE)
 
 def set_sample_rate(value):
     config.set('RECORDING', 'SAMPLE_RATE', str(value))

@@ -1,9 +1,7 @@
-import json
 from datetime import datetime
 import inspect
 import os
 
-from ConfigHandler import TRACK_LOG_FILE_PATH
 import ui
 
 class ansi_colours:
@@ -17,9 +15,10 @@ class ansi_colours:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-def LogMessage(message, logLevel="INFO"):
+def LogMessage(message, logLevel="INFO", print_to_ui=True):
     
-    ui.window.print_log_message(message)
+    if print_to_ui:
+        ui.window.print_log_message(message)
     
     match logLevel:
         case "INFO":
@@ -39,25 +38,3 @@ def LogMessage(message, logLevel="INFO"):
 
     message = f"{ansi_colours.OKBLUE}[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]{ansi_colours.ENDC}{ansi_colours.WARNING}[{caller_filename_only}]{ansi_colours.ENDC} {message}"
     print(message)  
-    
-def LogDetectedTrack(track_data):
-    LogMessage(f"Logging track: {track_data['title']} - {track_data['subtitle']}")
-
-    with open(TRACK_LOG_FILE_PATH) as track_log:
-        track_log_list = json.load(track_log)
-    
-    needed_track_data = {
-        "title": track_data["title"],
-        "artist": track_data["subtitle"],
-        "cover_art": track_data["images"]["coverarthq"] if "images" in track_data.keys() else None,
-        "apple_music_uri": f"https://music.apple.com/us/song/{track_data['hub']['actions'][0]['id']}" if 'hub' in track_data and 'actions' in track_data['hub'] and track_data['hub']['actions'][0]['id'] else None,
-        "track_providers": [{"platform": item["type"], "uri": item["actions"][0]["uri"]} for item in track_data["hub"]["providers"]],
-        "time_detected": int(datetime.now().timestamp())
-    }
-    
-    track_log_list.append(needed_track_data)
-
-    with open(TRACK_LOG_FILE_PATH, "w+") as track_log:
-        json.dump(track_log_list, track_log, indent=4, separators=(',',': '))
-
-    LogMessage("Finished logging track.", logLevel="INFO")

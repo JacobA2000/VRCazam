@@ -2,11 +2,13 @@ from ShazamAPI import Shazam
 import soundcard as sc
 import soundfile as sf
 import io
+from datetime import datetime
+import json
 
 import ui
 from NotificationHandler import SendNotification
-from LogHandler import LogDetectedTrack, LogMessage
-from ConfigHandler import config
+from LogHandler import LogMessage
+from ConfigHandler import config, TRACK_LOG_FILE_PATH
 
 def RecordAudioBytes(sr, rs):
     LogMessage(f"Recording for {rs} seconds at {sr} Hz.", logLevel="INFO")    
@@ -59,3 +61,25 @@ def TrackSearchInit(address, *args):
             content=track_msg[0], 
             msg_type=track_msg[1], 
         )
+
+def LogDetectedTrack(track_data):
+    LogMessage(f"Logging track: {track_data['title']} - {track_data['subtitle']}")
+
+    with open(TRACK_LOG_FILE_PATH) as track_log:
+        track_log_list = json.load(track_log)
+    
+    needed_track_data = {
+        "title": track_data["title"],
+        "artist": track_data["subtitle"],
+        "cover_art": track_data["images"]["coverarthq"] if "images" in track_data.keys() else None,
+        "apple_music_uri": f"https://music.apple.com/us/song/{track_data['hub']['actions'][0]['id']}" if 'hub' in track_data and 'actions' in track_data['hub'] and track_data['hub']['actions'][0]['id'] else None,
+        "track_providers": [{"platform": item["type"], "uri": item["actions"][0]["uri"]} for item in track_data["hub"]["providers"]],
+        "time_detected": int(datetime.now().timestamp())
+    }
+    
+    track_log_list.append(needed_track_data)
+
+    with open(TRACK_LOG_FILE_PATH, "w+") as track_log:
+        json.dump(track_log_list, track_log, indent=4, separators=(',',': '))
+
+    LogMessage("Finished logging track.", logLevel="INFO")
