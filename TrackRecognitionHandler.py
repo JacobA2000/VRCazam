@@ -48,7 +48,9 @@ def RecognizeSong(audio_bytes):
 
 def TrackSearchInit(address, *args):
     if args[0] == True:
-        LogMessage(f"OSC Message Received on address {address}.", logLevel="INFO")
+
+        if address != "ButtonPress":
+            LogMessage(f"OSC Message Received on address {address}.", logLevel="INFO")
 
         # Get up to date settings values from the config file
         sample_rate = config.getint('RECORDING', 'SAMPLE_RATE')

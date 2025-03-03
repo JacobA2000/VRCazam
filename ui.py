@@ -26,7 +26,7 @@ class TrackSearchThread(QThread):
     log_message = pyqtSignal(str)
 
     def run(self):
-        TrackRecognitionHandler.TrackSearchInit("test", True)
+        TrackRecognitionHandler.TrackSearchInit("ButtonPress", True)
 
 class SettingsWindow(QWidget):
     def __init__(self, main_window):
