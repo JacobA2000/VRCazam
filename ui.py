@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QLi
 from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtCore import pyqtSignal, QObject, Qt, QThread
 import os
+from datetime import datetime
 
 import TrackRecognitionHandler
 from ConfigHandler import config, set_sample_rate, set_record_sec, set_notification_method, set_notification_duration, set_osc_port, set_osc_ip, set_osc_parameter
@@ -398,6 +399,11 @@ class HistoryWindow(QWidget):
             # Add label to the vertical layout
             song_artist_label = QLabel(track["artist"])
             widget_vertical_layout.addWidget(song_artist_label)
+
+            # Add datetime detected to the vertical layout
+            datetime_detected = datetime.fromtimestamp(track["time_detected"]).strftime('%Y-%m-%d %H:%M:%S')
+            datetime_label = QLabel(f"Detected on: {datetime_detected}")
+            widget_vertical_layout.addWidget(datetime_label)
 
             # Add clickable URLs as labels with images
             provider_layout = QHBoxLayout()  # Create horizontal layout for provider images

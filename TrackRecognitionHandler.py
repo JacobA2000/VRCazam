@@ -11,8 +11,9 @@ from LogHandler import LogMessage
 from ConfigHandler import config, TRACK_LOG_FILE_PATH
 
 def RecordAudioBytes(sr, rs):
-    LogMessage(f"Recording for {rs} seconds at {sr} Hz.", logLevel="INFO")    
-    with sc.get_microphone(id=str(sc.default_speaker().name), include_loopback=True).recorder(samplerate=sr) as mic:
+    default_speaker = str(sc.default_speaker().name)
+    LogMessage(f"Recording audio from {default_speaker} for {rs} seconds at {sr} Hz.", logLevel="INFO")    
+    with sc.get_microphone(id=default_speaker, include_loopback=True).recorder(samplerate=sr) as mic:
         # record audio with loopback from default speaker.
         data = mic.record(numframes=sr*rs)
 
