@@ -108,6 +108,10 @@ class SettingsWindow(QWidget):
         self.osc_parameter_input = QLineEdit(config.get('OSC', 'PARAMETER_NAME'))
         form_layout.addRow('OSC Parameter:', self.osc_parameter_input)
 
+        # Add a label indicating a restart is required for OSC changes
+        restart_label = QLabel("Note: A restart is required for OSC changes to take effect.")
+        form_layout.addRow(restart_label)
+
         # Save button
         save_button = QPushButton('Save')
         save_button.clicked.connect(self.save_settings)
@@ -259,77 +263,83 @@ class MyWindow(QWidget):
 
         tracks.reverse()
 
-        for i, track in enumerate(tracks):
-            if i == 5:
-                break
+        if not tracks:
+            no_tracks_label = QLabel("No track history, start searching for tracks!")
+            #center the label
+            no_tracks_label.setAlignment(Qt.AlignCenter)
+            self.widget_layout.addWidget(no_tracks_label)
+        else:
+            for i, track in enumerate(tracks):
+                if i == 5:
+                    break
 
-            # Create a frame for each widget item
-            widget_frame = QFrame()
-            widget_frame.setFrameShape(QFrame.StyledPanel)
-            widget_frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)  # Set the size policy
+                # Create a frame for each widget item
+                widget_frame = QFrame()
+                widget_frame.setFrameShape(QFrame.StyledPanel)
+                widget_frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)  # Set the size policy
 
-            # Create a horizontal layout for the widget
-            widget_horizontal_layout = QHBoxLayout(widget_frame)
-            widget_horizontal_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
+                # Create a horizontal layout for the widget
+                widget_horizontal_layout = QHBoxLayout(widget_frame)
+                widget_horizontal_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
 
-            # Create an image label
-            image_label = QLabel() 
-            pixmap = QPixmap()
+                # Create an image label
+                image_label = QLabel() 
+                pixmap = QPixmap()
 
-            if track["cover_art"] is not None:
-                image_data = requests.get(track["cover_art"]).content
-                pixmap.loadFromData(image_data)
-            else:
-                pixmap.load(f"{assets_file_path}/placeholderambart.png")
-                
-            pixmap = pixmap.scaled(75, 75)  # Set maximum size to 75x75 pixels
-            image_label.setPixmap(pixmap)
-            widget_horizontal_layout.addWidget(image_label)
+                if track["cover_art"] is not None:
+                    image_data = requests.get(track["cover_art"]).content
+                    pixmap.loadFromData(image_data)
+                else:
+                    pixmap.load(f"{assets_file_path}/placeholderambart.png")
+                    
+                pixmap = pixmap.scaled(75, 75)  # Set maximum size to 75x75 pixels
+                image_label.setPixmap(pixmap)
+                widget_horizontal_layout.addWidget(image_label)
 
-            # Create a vertical layout for the widget
-            widget_vertical_layout = QVBoxLayout()
-            widget_horizontal_layout.addLayout(widget_vertical_layout)
-            widget_vertical_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
+                # Create a vertical layout for the widget
+                widget_vertical_layout = QVBoxLayout()
+                widget_horizontal_layout.addLayout(widget_vertical_layout)
+                widget_vertical_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
 
-            # Add label to the vertical layout
-            song_name_label = QLabel(track["title"])
-            song_name_label.setFont(QFont("Arial", 10, QFont.Bold))
-            widget_vertical_layout.addWidget(song_name_label)
+                # Add label to the vertical layout
+                song_name_label = QLabel(track["title"])
+                song_name_label.setFont(QFont("Arial", 10, QFont.Bold))
+                widget_vertical_layout.addWidget(song_name_label)
 
-            # Add label to the vertical layout
-            song_artist_label = QLabel(track["artist"])
-            widget_vertical_layout.addWidget(song_artist_label)
+                # Add label to the vertical layout
+                song_artist_label = QLabel(track["artist"])
+                widget_vertical_layout.addWidget(song_artist_label)
 
-            # Add clickable URLs as labels with images
-            provider_layout = QHBoxLayout()  # Create horizontal layout for provider images
-            provider_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
+                # Add clickable URLs as labels with images
+                provider_layout = QHBoxLayout()  # Create horizontal layout for provider images
+                provider_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
 
-            if track["apple_music_uri"] is not None:
-                url_label = QLabel()
-                url_label.setOpenExternalLinks(True)
-                url_label.setTextFormat(Qt.RichText)
+                if track["apple_music_uri"] is not None:
+                    url_label = QLabel()
+                    url_label.setOpenExternalLinks(True)
+                    url_label.setTextFormat(Qt.RichText)
 
-                url_label.setText("<a href='{0}'><img src='{1}' width='37' height='37'></a>".format(track["apple_music_uri"], f"{assets_file_path}/apple-music.svg"))
-                provider_layout.addWidget(url_label)
+                    url_label.setText("<a href='{0}'><img src='{1}' width='37' height='37'></a>".format(track["apple_music_uri"], f"{assets_file_path}/apple-music.svg"))
+                    provider_layout.addWidget(url_label)
 
-            for provider in track["track_providers"]:
-                url_label = QLabel()
-                url_label.setOpenExternalLinks(True)
-                url_label.setTextFormat(Qt.RichText)
+                for provider in track["track_providers"]:
+                    url_label = QLabel()
+                    url_label.setOpenExternalLinks(True)
+                    url_label.setTextFormat(Qt.RichText)
 
-                provider_image = ""
-                if provider["platform"] == "SPOTIFY":
-                    provider_image = f"{assets_file_path}/spotify.svg"
-                elif provider["platform"] == "DEEZER":
-                    provider_image = f"{assets_file_path}/deezer.svg"
+                    provider_image = ""
+                    if provider["platform"] == "SPOTIFY":
+                        provider_image = f"{assets_file_path}/spotify.svg"
+                    elif provider["platform"] == "DEEZER":
+                        provider_image = f"{assets_file_path}/deezer.svg"
 
-                url_label.setText("<a href='{0}'><img src='{1}' width='37' height='37'></a>".format(provider["uri"], provider_image))
-                provider_layout.addWidget(url_label)
+                    url_label.setText("<a href='{0}'><img src='{1}' width='37' height='37'></a>".format(provider["uri"], provider_image))
+                    provider_layout.addWidget(url_label)
 
-            widget_vertical_layout.addLayout(provider_layout)  # Add provider layout to the widget layout
+                widget_vertical_layout.addLayout(provider_layout)  # Add provider layout to the widget layout
 
-            # Add the widget frame to the layout
-            self.widget_layout.addWidget(widget_frame)
+                # Add the widget frame to the layout
+                self.widget_layout.addWidget(widget_frame)
 
 class HistoryWindow(QWidget):
     def __init__(self):
@@ -363,79 +373,85 @@ class HistoryWindow(QWidget):
 
         tracks.reverse()
 
-        for track in tracks:
-            # Create a frame for each widget item
-            widget_frame = QFrame()
-            widget_frame.setFrameShape(QFrame.StyledPanel)
-            widget_frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)  # Set the size policy
+        if not tracks:
+            no_tracks_label = QLabel("No track history, start searching for tracks!")
+            #center the label
+            no_tracks_label.setAlignment(Qt.AlignCenter)
+            scroll_layout.addWidget(no_tracks_label)
+        else:
+            for track in tracks:
+                # Create a frame for each widget item
+                widget_frame = QFrame()
+                widget_frame.setFrameShape(QFrame.StyledPanel)
+                widget_frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)  # Set the size policy
 
-            # Create a horizontal layout for the widget
-            widget_horizontal_layout = QHBoxLayout(widget_frame)
-            widget_horizontal_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
+                # Create a horizontal layout for the widget
+                widget_horizontal_layout = QHBoxLayout(widget_frame)
+                widget_horizontal_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
 
-            # Create an image label
-            image_label = QLabel()
-            pixmap = QPixmap()
+                # Create an image label
+                image_label = QLabel()
+                pixmap = QPixmap()
 
-            if track["cover_art"] is not None:
-                image_data = requests.get(track["cover_art"]).content
-                pixmap.loadFromData(image_data)
-            else:
-                pixmap.load(f"{assets_file_path}/placeholderambart.png")
+                if track["cover_art"] is not None:
+                    image_data = requests.get(track["cover_art"]).content
+                    pixmap.loadFromData(image_data)
+                else:
+                    pixmap.load(f"{assets_file_path}/placeholderambart.png")
 
-            pixmap = pixmap.scaled(75, 75)  # Set maximum size to 75x75 pixels
-            image_label.setPixmap(pixmap)
-            widget_horizontal_layout.addWidget(image_label)
+                pixmap = pixmap.scaled(75, 75)  # Set maximum size to 75x75 pixels
+                image_label.setPixmap(pixmap)
+                widget_horizontal_layout.addWidget(image_label)
 
-            # Create a vertical layout for the widget
-            widget_vertical_layout = QVBoxLayout()
-            widget_horizontal_layout.addLayout(widget_vertical_layout)
-            widget_vertical_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
+                # Create a vertical layout for the widget
+                widget_vertical_layout = QVBoxLayout()
+                widget_horizontal_layout.addLayout(widget_vertical_layout)
+                widget_vertical_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
 
-            # Add label to the vertical layout
-            song_name_label = QLabel(track["title"])
-            song_name_label.setFont(QFont("Arial", 10, QFont.Bold))
-            widget_vertical_layout.addWidget(song_name_label)
+                # Add label to the vertical layout
+                song_name_label = QLabel(track["title"])
+                song_name_label.setFont(QFont("Arial", 10, QFont.Bold))
+                widget_vertical_layout.addWidget(song_name_label)
 
-            # Add label to the vertical layout
-            song_artist_label = QLabel(track["artist"])
-            widget_vertical_layout.addWidget(song_artist_label)
+                # Add label to the vertical layout
+                song_artist_label = QLabel(track["artist"])
+                widget_vertical_layout.addWidget(song_artist_label)
 
-            # Add datetime detected to the vertical layout
-            datetime_detected = datetime.fromtimestamp(track["time_detected"]).strftime('%Y-%m-%d %H:%M:%S')
-            datetime_label = QLabel(f"Detected on: {datetime_detected}")
-            widget_vertical_layout.addWidget(datetime_label)
+                # Add datetime detected to the vertical layout
+                datetime_detected = datetime.fromtimestamp(track["time_detected"]).strftime('%Y-%m-%d %H:%M:%S')
+                datetime_label = QLabel(f"Detected on: {datetime_detected}")
+                widget_vertical_layout.addWidget(datetime_label)
 
-            # Add clickable URLs as labels with images
-            provider_layout = QHBoxLayout()  # Create horizontal layout for provider images
-            provider_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
+                # Add clickable URLs as labels with images
+                provider_layout = QHBoxLayout()  # Create horizontal layout for provider images
+                provider_layout.setAlignment(Qt.AlignLeft)  # Align the content to the left
 
-            if track["apple_music_uri"] is not None:
-                url_label = QLabel()
-                url_label.setOpenExternalLinks(True)
-                url_label.setTextFormat(Qt.RichText)
+                if track["apple_music_uri"] is not None:
+                    url_label = QLabel()
+                    url_label.setOpenExternalLinks(True)
+                    url_label.setTextFormat(Qt.RichText)
 
-                url_label.setText("<a href='{0}'><img src='{1}' width='37' height='37'></a>".format(track["apple_music_uri"], f"{assets_file_path}/apple-music.svg"))
-                provider_layout.addWidget(url_label)
+                    url_label.setText("<a href='{0}'><img src='{1}' width='37' height='37'></a>".format(track["apple_music_uri"], f"{assets_file_path}/apple-music.svg"))
+                    provider_layout.addWidget(url_label)
 
-            for provider in track["track_providers"]:
-                url_label = QLabel()
-                url_label.setOpenExternalLinks(True)
-                url_label.setTextFormat(Qt.RichText)
+                for provider in track["track_providers"]:
+                    url_label = QLabel()
+                    url_label.setOpenExternalLinks(True)
+                    url_label.setTextFormat(Qt.RichText)
 
-                provider_image = ""
-                if provider["platform"] == "SPOTIFY":
-                    provider_image = f"{assets_file_path}/spotify.svg"
-                elif provider["platform"] == "DEEZER":
-                    provider_image = f"{assets_file_path}/deezer.svg"
+                    provider_image = ""
+                    if provider["platform"] == "SPOTIFY":
+                        provider_image = f"{assets_file_path}/spotify.svg"
+                    elif provider["platform"] == "DEEZER":
+                        provider_image = f"{assets_file_path}/deezer.svg"
 
-                url_label.setText("<a href='{0}'><img src='{1}' width='37' height='37'></a>".format(provider["uri"], provider_image))
-                provider_layout.addWidget(url_label)
+                    url_label.setText("<a href='{0}'><img src='{1}' width='37' height='37'></a>".format(provider["uri"], provider_image))
+                    provider_layout.addWidget(url_label)
 
-            widget_vertical_layout.addLayout(provider_layout)  # Add provider layout to the widget layout
+                widget_vertical_layout.addLayout(provider_layout)  # Add provider layout to the widget layout
 
-            # Add the widget frame to the layout
-            scroll_layout.addWidget(widget_frame)
+                # Add the widget frame to the layout
+                scroll_layout.addWidget(widget_frame)
 
         # Set the scroll widget
         scroll_area.setWidget(scroll_widget)
