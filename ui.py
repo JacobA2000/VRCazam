@@ -241,6 +241,7 @@ class MyWindow(QWidget):
     def print_log_message(self, message):
         item = QListWidgetItem(message)  # Create a list item with the message
         self.list_view.addItem(item)  # Add the item to the list view
+        self.list_view.scrollToBottom()  # Scroll to the bottom
 
     def updateWidgets(self):
         #self.updateUI.emit()
