@@ -1,7 +1,7 @@
 import sys
 import json
 import requests
-from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QListWidget, QListWidgetItem, QLabel, QVBoxLayout, QFrame, QSizePolicy, QPushButton, QScrollArea, QFormLayout, QLineEdit, QRadioButton, QButtonGroup, QSlider
+from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QListWidget, QListWidgetItem, QLabel, QVBoxLayout, QFrame, QSizePolicy, QPushButton, QScrollArea, QFormLayout, QLineEdit, QRadioButton, QButtonGroup, QSlider, QMessageBox
 from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtCore import pyqtSignal, QObject, Qt, QThread
 import os
@@ -130,14 +130,22 @@ class SettingsWindow(QWidget):
         self.notification_duration_label.setText(str(value))
 
     def save_settings(self):
-        set_sample_rate(int(self.sample_rate_input.text()))
-        set_record_sec(self.record_sec_slider.value())
-        set_notification_method(self.notification_method_group.checkedId())
-        set_notification_duration(self.notification_duration_slider.value())
-        set_osc_port(int(self.osc_port_input.text()))
-        set_osc_ip(self.osc_ip_input.text())
-        set_osc_parameter(self.osc_parameter_input.text())
-        self.close()
+        try:
+            sample_rate = int(self.sample_rate_input.text())
+            osc_port = int(self.osc_port_input.text())
+            osc_ip = self.osc_ip_input.text()
+            osc_parameter = self.osc_parameter_input.text()
+
+            set_sample_rate(sample_rate)
+            set_record_sec(self.record_sec_slider.value())
+            set_notification_method(self.notification_method_group.checkedId())
+            set_notification_duration(self.notification_duration_slider.value())
+            set_osc_port(osc_port)
+            set_osc_ip(osc_ip)
+            set_osc_parameter(osc_parameter)
+            self.close()
+        except ValueError:
+            QMessageBox.warning(self, "Invalid Input", "Please enter valid values for all fields.")
 
     def clear_detected_tracks(self):
         with open(detected_tracks_file_path, 'w') as track_log:
