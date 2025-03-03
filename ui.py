@@ -1,7 +1,7 @@
 import sys
 import json
 import requests
-from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QListWidget, QListWidgetItem, QLabel, QVBoxLayout, QFrame, QSizePolicy, QPushButton, QScrollArea, QFormLayout, QLineEdit
+from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QListWidget, QListWidgetItem, QLabel, QVBoxLayout, QFrame, QSizePolicy, QPushButton, QScrollArea, QFormLayout, QLineEdit, QRadioButton, QButtonGroup, QSlider
 from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtCore import pyqtSignal, QObject, Qt, QThread
 import os
@@ -51,16 +51,49 @@ class SettingsWindow(QWidget):
         form_layout.addRow('Sample Rate:', self.sample_rate_input)
 
         # Record seconds setting
-        self.record_sec_input = QLineEdit(str(config.getint('RECORDING', 'RECORD_SEC')))
-        form_layout.addRow('Record Seconds:', self.record_sec_input)
+        self.record_sec_slider = QSlider(Qt.Horizontal)
+        self.record_sec_slider.setMinimum(5)
+        self.record_sec_slider.setMaximum(30)
+        self.record_sec_slider.setValue(config.getint('RECORDING', 'RECORD_SEC'))
+        self.record_sec_slider.setTickPosition(QSlider.TicksBelow)
+        self.record_sec_slider.setTickInterval(1)
+        self.record_sec_slider.valueChanged.connect(self.update_record_sec_label)
+        self.record_sec_label = QLabel(str(self.record_sec_slider.value()))
+        record_sec_layout = QHBoxLayout()
+        record_sec_layout.addWidget(self.record_sec_slider)
+        record_sec_layout.addWidget(self.record_sec_label)
+        form_layout.addRow('Record Seconds:', record_sec_layout)
 
         # Notification method setting
-        self.notification_method_input = QLineEdit(str(config.getint('NOTIFICATIONS', 'NOTIFICATION_METHOD')))
-        form_layout.addRow('Notification Method:', self.notification_method_input)
+        self.notification_method_group = QButtonGroup(self)
+        self.windows_toast_radio = QRadioButton("Windows Toast")
+        self.xsoverlay_radio = QRadioButton("XSOverlay")
+        self.notification_method_group.addButton(self.windows_toast_radio, 0)
+        self.notification_method_group.addButton(self.xsoverlay_radio, 1)
+        notification_method_layout = QHBoxLayout()
+        notification_method_layout.addWidget(self.windows_toast_radio)
+        notification_method_layout.addWidget(self.xsoverlay_radio)
+        form_layout.addRow('Notification Method:', notification_method_layout)
+
+        # Set the initial state of the radio buttons based on the config
+        if config.getint('NOTIFICATIONS', 'NOTIFICATION_METHOD') == 0:
+            self.windows_toast_radio.setChecked(True)
+        else:
+            self.xsoverlay_radio.setChecked(True)
 
         # Notification duration setting
-        self.notification_duration_input = QLineEdit(str(config.getint('NOTIFICATIONS', 'NOTIFICATION_DURATION')))
-        form_layout.addRow('Notification Duration:', self.notification_duration_input)
+        self.notification_duration_slider = QSlider(Qt.Horizontal)
+        self.notification_duration_slider.setMinimum(1)
+        self.notification_duration_slider.setMaximum(10)
+        self.notification_duration_slider.setValue(config.getint('NOTIFICATIONS', 'NOTIFICATION_DURATION'))
+        self.notification_duration_slider.setTickPosition(QSlider.TicksBelow)
+        self.notification_duration_slider.setTickInterval(1)
+        self.notification_duration_slider.valueChanged.connect(self.update_notification_duration_label)
+        self.notification_duration_label = QLabel(str(self.notification_duration_slider.value()))
+        notification_duration_layout = QHBoxLayout()
+        notification_duration_layout.addWidget(self.notification_duration_slider)
+        notification_duration_layout.addWidget(self.notification_duration_label)
+        form_layout.addRow('Notification Duration:', notification_duration_layout)
 
         # OSC port setting
         self.osc_port_input = QLineEdit(str(config.getint('OSC', 'PORT')))
@@ -90,11 +123,17 @@ class SettingsWindow(QWidget):
         # Set the main layout for the window
         self.setLayout(main_layout)
 
+    def update_record_sec_label(self, value):
+        self.record_sec_label.setText(str(value))
+
+    def update_notification_duration_label(self, value):
+        self.notification_duration_label.setText(str(value))
+
     def save_settings(self):
         set_sample_rate(int(self.sample_rate_input.text()))
-        set_record_sec(int(self.record_sec_input.text()))
-        set_notification_method(int(self.notification_method_input.text()))
-        set_notification_duration(int(self.notification_duration_input.text()))
+        set_record_sec(self.record_sec_slider.value())
+        set_notification_method(self.notification_method_group.checkedId())
+        set_notification_duration(self.notification_duration_slider.value())
         set_osc_port(int(self.osc_port_input.text()))
         set_osc_ip(self.osc_ip_input.text())
         set_osc_parameter(self.osc_parameter_input.text())
