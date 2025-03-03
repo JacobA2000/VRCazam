@@ -8,6 +8,7 @@ import os
 
 import TrackRecognitionHandler
 from ConfigHandler import config, set_sample_rate, set_record_sec, set_notification_method, set_notification_duration, set_osc_port, set_osc_ip, set_osc_parameter
+from LogHandler import LogMessage
 
 sample_rate = config.getint('RECORDING', 'SAMPLE_RATE')
 record_sec = config.getint('RECORDING', 'RECORD_SEC')
@@ -28,8 +29,9 @@ class TrackSearchThread(QThread):
         TrackRecognitionHandler.TrackSearchInit("test", True)
 
 class SettingsWindow(QWidget):
-    def __init__(self):
+    def __init__(self, main_window):
         super().__init__()
+        self.main_window = main_window
         self.initUI()
 
     def initUI(self):
@@ -77,6 +79,11 @@ class SettingsWindow(QWidget):
         save_button.clicked.connect(self.save_settings)
         form_layout.addRow(save_button)
 
+        # Clear detected tracks button
+        clear_tracks_button = QPushButton('Clear Detected Tracks')
+        clear_tracks_button.clicked.connect(self.clear_detected_tracks)
+        form_layout.addRow(clear_tracks_button)
+
         # Add form layout to main layout
         main_layout.addLayout(form_layout)
 
@@ -92,6 +99,12 @@ class SettingsWindow(QWidget):
         set_osc_ip(self.osc_ip_input.text())
         set_osc_parameter(self.osc_parameter_input.text())
         self.close()
+
+    def clear_detected_tracks(self):
+        with open(detected_tracks_file_path, 'w') as track_log:
+            json.dump([], track_log, indent=4, separators=(',', ': '))
+        LogMessage("Detected tracks cleared.", logLevel="INFO")
+        self.main_window.updateWidgets()
 
 # Main window class
 class MyWindow(QWidget):
@@ -174,7 +187,7 @@ class MyWindow(QWidget):
         self.history_window.show()
 
     def openSettings(self):
-        self.settings_window = SettingsWindow()
+        self.settings_window = SettingsWindow(self)
         self.settings_window.show()
 
     def print_log_message(self, message):
