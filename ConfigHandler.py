@@ -9,6 +9,11 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(script_dir, 'config.ini')
 TRACK_LOG_FILE_PATH = os.path.join(script_dir, 'detected-tracks.json')
 
+# Check if the track log file exists, if not create it with default values
+if not os.path.isfile(TRACK_LOG_FILE_PATH):
+    with open(TRACK_LOG_FILE_PATH, "w") as track_log:
+        track_log.write("[]")
+
 # Create a ConfigParser object
 config = configparser.ConfigParser()
 
