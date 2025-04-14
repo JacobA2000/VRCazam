@@ -2,10 +2,11 @@ import sys
 import json
 import requests
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QListWidget, QListWidgetItem, QLabel, QVBoxLayout, QFrame, QSizePolicy, QPushButton, QScrollArea, QFormLayout, QLineEdit, QRadioButton, QButtonGroup, QSlider, QMessageBox
-from PyQt5.QtGui import QPixmap, QFont
+from PyQt5.QtGui import QPixmap, QFont, QPalette
 from PyQt5.QtCore import pyqtSignal, QObject, Qt, QThread
 import os
 from datetime import datetime
+import winreg
 
 import TrackRecognitionHandler
 from ConfigHandler import config, set_sample_rate, set_record_sec, set_notification_method, set_notification_duration, set_osc_port, set_osc_ip, set_osc_parameter
@@ -23,6 +24,57 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 detected_tracks_file_path = os.path.join(script_dir, 'detected-tracks.json')
 assets_file_path = os.path.join(script_dir, 'assets')
 
+def get_system_color_mode():
+    """
+    Detect the current system color mode (dark or light) from the Windows Registry.
+    
+    TODO: Implement a cross-platform solution for color mode detection.
+    Currently, this function only works on Windows.
+
+    """        
+    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize")
+    value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
+    return "light" if value == 1 else "dark"
+
+        
+def apply_color_mode(window):
+    """Apply colors based on the system color mode."""
+    color_mode = get_system_color_mode()
+    if color_mode == "dark":
+        window.setStyleSheet("""
+            QWidget {
+                background-color: #2E2E2E;
+                color: #FFFFFF;
+            }
+            QPushButton {
+                background-color: #444444;
+                color: #FFFFFF;
+            }
+            QPushButton:hover {
+                background-color: #555555;
+            }
+            QLineEdit, QLabel {
+                color: #FFFFFF;
+            }
+        """)
+    else:
+        window.setStyleSheet("""
+            QWidget {
+                background-color: #FFFFFF;
+                color: #000000;
+            }
+            QPushButton {
+                background-color: #F0F0F0;
+                color: #000000;
+            }
+            QPushButton:hover {
+                background-color: #E0E0E0;
+            }
+            QLineEdit, QLabel {
+                color: #000000;
+            }
+        """)
+
 class TrackSearchThread(QThread):
     log_message = pyqtSignal(str)
 
@@ -38,6 +90,7 @@ class SettingsWindow(QWidget):
     def initUI(self):
         self.setWindowTitle('Settings')
         self.setMinimumSize(400, 300)
+        apply_color_mode(self)
 
         # Create the main layout
         main_layout = QVBoxLayout()
@@ -174,6 +227,8 @@ class MyWindow(QWidget):
         main_layout.setContentsMargins(10, 10, 10, 10)
         main_layout.setSpacing(10)
         
+        apply_color_mode(self)
+
         # Create a horizontal layout for the list and widgets
         content_layout = QHBoxLayout()
         content_layout.setContentsMargins(0, 0, 0, 0)
@@ -349,6 +404,7 @@ class HistoryWindow(QWidget):
     def initUI(self):
         self.setWindowTitle('Track History')
         self.setMinimumSize(800, 600)
+        apply_color_mode(self)
 
         # Create the main layout
         main_layout = QVBoxLayout()

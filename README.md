@@ -6,5 +6,3 @@ A python application built with QT and utilising Shazam to detect currently play
 - Python 3.12 or below
 - FFMPEG
 - `pip install -r requirements,txt`
-
-
