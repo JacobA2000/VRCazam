@@ -11,6 +11,7 @@ build/
 *.egg-info/
 
 # Virtual environments
+.venv/
 venv/
 env/
 *.env/

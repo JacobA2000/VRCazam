@@ -6,7 +6,10 @@ from PyQt5.QtGui import QPixmap, QFont, QPalette
 from PyQt5.QtCore import pyqtSignal, QObject, Qt, QThread
 import os
 from datetime import datetime
-import winreg
+
+if os.name == 'nt':
+    # Import winreg only on Windows
+    import winreg
 
 import TrackRecognitionHandler
 from ConfigHandler import config, set_sample_rate, set_record_sec, set_notification_method, set_notification_duration, set_osc_port, set_osc_ip, set_osc_parameter
@@ -39,7 +42,13 @@ def get_system_color_mode():
         
 def apply_color_mode(window):
     """Apply colors based on the system color mode."""
-    color_mode = get_system_color_mode()
+    #CHECK IF OS IS WINDOWS
+    if os.name == 'nt':
+        color_mode = get_system_color_mode()
+    else:
+        # Default to light mode for non-Windows systems
+        color_mode = "light"
+
     if color_mode == "dark":
         window.setStyleSheet("""
             QWidget {
