@@ -1,0 +1,8 @@
+pyinstaller --onefile \
+  --paths=./ \
+  --add-data "config.ini:config.ini" \
+  --add-data "assets/apple-music.svg:assets" \
+  --add-data "assets/deezer.svg:assets" \
+  --add-data "assets/spotify.svg:assets" \
+  --add-data "assets/placeholderambart.png:assets" \
+  main.py
