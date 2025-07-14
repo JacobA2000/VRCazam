@@ -47,7 +47,7 @@ def apply_color_mode(window):
         color_mode = get_system_color_mode()
     else:
         # Default to light mode for non-Windows systems
-        color_mode = "light"
+        color_mode = 'linux'
 
     if color_mode == "dark":
         window.setStyleSheet("""
@@ -66,6 +66,9 @@ def apply_color_mode(window):
                 color: #FFFFFF;
             }
         """)
+    elif color_mode == "linux ":
+        # USE DEFAULT QT STYLE TO ALLOW FOR CUSTOM THEMES
+        window.setStyleSheet("")  # Reset to default style
     else:
         window.setStyleSheet("""
             QWidget {
