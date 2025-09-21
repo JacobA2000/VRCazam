@@ -1,8 +1,18 @@
 import sys
 import os
+import platform
 import json
 from pythonosc import dispatcher, osc_server
 import threading
+
+#Linux fix to force QT_PLUGIN_PATH to the internal QT plugins rather than users system ones.
+if platform.system() == "Linux":
+    venv = os.environ.get("VIRTUAL_ENV")
+    if venv:
+        os.environ["QT_PLUGIN_PATH"] = os.path.join(
+            venv, "lib", "python3.12", "site-packages", "PyQt5", "Qt5", "plugins"
+        )
+
 from PyQt5.QtCore import pyqtSlot
 
 from ui import window, app

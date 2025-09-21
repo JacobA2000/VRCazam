@@ -132,7 +132,7 @@ class SettingsWindow(QWidget):
 
         # Notification method setting
         self.notification_method_group = QButtonGroup(self)
-        self.windows_toast_radio = QRadioButton("Windows Toast")
+        self.windows_toast_radio = QRadioButton("System Notification")
         self.xsoverlay_radio = QRadioButton("XSOverlay")
         self.notification_method_group.addButton(self.windows_toast_radio, 0)
         self.notification_method_group.addButton(self.xsoverlay_radio, 1)
